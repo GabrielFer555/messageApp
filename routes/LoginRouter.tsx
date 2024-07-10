@@ -8,8 +8,8 @@ const LoginRouter = () => {
 
   return (
     <LoginStack.Navigator>
-        <LoginStack.Screen name='login' component={LoginComponent} options={{title:"Login"}}/>
-        <LoginStack.Screen name='register' component={Register} options={{title:"New to the app?"}}/>
+        <LoginStack.Screen name='login' component={LoginComponent} options={{title:"Login", headerShown:false}}/>
+        <LoginStack.Screen name='register' component={Register} options={{title:"New to the app?", headerShown:true}}/>
         </LoginStack.Navigator>
   )
 }
