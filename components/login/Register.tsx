@@ -5,6 +5,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } f
 import { getFirestore, collection, addDoc } from "firebase/firestore";
 import app from '../../configs/Firebase';
 import Toast from 'react-native-toast-message';
+import { patternStyles } from '../../patterns/patternStyles';
 
 const Register = ({ navigation }) => {
     const [email, setEmail] = useState('')
@@ -77,7 +78,7 @@ const Register = ({ navigation }) => {
         </TouchableWithoutFeedback>
 
             <View style={styles.buttonContainer}>
-                <Button mode='elevated' textColor='blue' style={styles.buttonStyle} loading={loading} onPress={handleNewUserPress}>
+                <Button mode='elevated' textColor='blue' style={patternStyles.buttonStyle} loading={loading} onPress={handleNewUserPress}>
                     Save
                 </Button>
             </View>
@@ -109,9 +110,6 @@ const styles = StyleSheet.create({
     buttonContainer: {
         flex: 1,
         gap: 40
-    },
-    buttonStyle: {
-        width: Dimensions.get('window').width,
     },
     keyBoardView:{
         flex:3,

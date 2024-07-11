@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useRef, useState } from 'react'
 import { Dimensions, StyleSheet, View, Text, Image, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Alert } from 'react-native'
 import { Appbar, TextInput, Button } from 'react-native-paper'
 import { getAuth, GoogleAuthProvider, signInWithEmailAndPassword } from 'firebase/auth'
@@ -7,6 +7,7 @@ import Toast from 'react-native-toast-message'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { userContext } from '../../contexts/UserContext'
 import { doc, onSnapshot } from 'firebase/firestore'
+import { patternStyles } from '../../patterns/patternStyles'
 
 
 
@@ -15,7 +16,8 @@ const LoginComponent = ({navigation}) => {
   const [password, setPassword] = useState('')
   const [loading,setLoading] = useState(false)
   const {user, setUser} = useContext(userContext)
-
+  const inputEmailRef = useRef(null)
+  const passwordRef = useRef(null)
 
 
   const handleEmailLogin = async () =>{
@@ -32,6 +34,7 @@ const LoginComponent = ({navigation}) => {
       AsyncStorage.setItem('uuid', result.user.email)
       Toast.show({type:'success', text1:'Logged in with success'})
     }catch(err){
+      inputEmailRef.current.focus()
       Toast.show({
         type:'error',
         text1:'Error',
@@ -47,19 +50,19 @@ const LoginComponent = ({navigation}) => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <View style={{flex:2, justifyContent:'center', alignItems:'center'}} >
       <View style={styles.logoContainer}>
-        <Image source={require('../../assets/JSminor.png')} style={styles.logo}/>
+        <Image source={require('../../assets/JSminor.png')}/>
       </View>
       <View style={styles.inputContainerStyle}>
-        <TextInput style={styles.inputStyle} label="Email" textColor='black' value={email} onChangeText={e => setEmail(e)} keyboardType='email-address'/>
+        <TextInput style={styles.inputStyle} label="Email" textColor='black' value={email} onChangeText={e => setEmail(e)} keyboardType='email-address' ref={inputEmailRef}/>
         <TextInput style={styles.inputStyle} label="Password" secureTextEntry value={password} onChangeText={(e) => setPassword(e)}/>
       </View>
       </View>
       </TouchableWithoutFeedback>
       <View style={styles.buttonContainer}>
-          <Button mode='elevated' textColor='blue' style={styles.buttonStyle} loading={loading} onPress={handleEmailLogin}>
+          <Button mode='elevated' textColor='blue' style={patternStyles.buttonStyle} loading={loading} onPress={handleEmailLogin}>
             Login
           </Button>
-          <Button mode='elevated' textColor='black' style={styles.buttonStyle} onPress={()=> navigation.navigate('register')}>
+          <Button mode='elevated' textColor='black' style={patternStyles.buttonStyle} onPress={()=> navigation.navigate('register')}>
             Doesn't have an account?
           </Button>
       </View>
@@ -89,12 +92,6 @@ const styles = StyleSheet.create({
   buttonContainer:{
     flex:1,
     gap:30
-  },
-  buttonStyle:{
-    width:Dimensions.get('window').width,
-  },
-  logo: {
-    //...
   },
   logoContainer:{
     flex:1
