@@ -4,7 +4,7 @@ import { userContext } from '../../contexts/UserContext'
 import { firestore } from '../../configs/Firebase'
 import { collection, doc, getDocs, query, where } from 'firebase/firestore'
 import Toast from 'react-native-toast-message'
-import { Avatar, Button } from 'react-native-paper'
+import { Avatar, Button, TextInput } from 'react-native-paper'
 import { patternStyles } from '../../patterns/patternStyles'
 
 
@@ -13,7 +13,8 @@ import { patternStyles } from '../../patterns/patternStyles'
 
 const MyAccount = ({ navigation }) => {
   const { user } = useContext(userContext)
-  const [userInfo, setUserInfo] = useState('')
+  const [userName, setUsername] = useState('')
+  const [bio, setBio] = useState('')
   const userCollection = collection(firestore, 'users')
 
   const searchUserData = async () => {
@@ -29,7 +30,7 @@ const MyAccount = ({ navigation }) => {
         })
       }
       userData.forEach(user => {
-        setUserInfo(user.data().userName)
+        setUsername(user.data().userName)
       })
 
     } catch (err) {
@@ -39,16 +40,20 @@ const MyAccount = ({ navigation }) => {
 
   useEffect(() => {
     searchUserData()
-  })
+  }, [])
 
   return (
     <View style={styles.container}>
-      <View style={styles.halfScreenContainer}>
-      <Avatar.Icon size={200} icon="account" />
-      <Text style={{fontSize:25, textAlign:'center'}}>{userInfo}</Text>
+      <View style={[styles.halfScreenContainer, { flex: 2 }]}>
+        <Avatar.Icon size={200} icon="account" />
+        <Text style={{ fontSize: 25, textAlign: 'center' }}>{userName}</Text>
       </View>
       <View style={styles.halfScreenContainer}>
-        <Button buttonColor='blue' textColor='white' icon="qrcode" style={patternStyles.buttonStyle}> Share </Button>
+        <Button buttonColor='blue' mode='contained' textColor='white' icon="qrcode" style={patternStyles.buttonStyle}> Share </Button>
+      </View>
+      <View style={[styles.halfScreenContainer, { padding: 10 }]}>
+        <Text>Biography:</Text>
+        <TextInput style={{ width: Dimensions.get('screen').width * 0.9 }} value={bio} label="write something..." onChangeText={txt => setBio(txt)} right={<TextInput.Icon icon="pen" />} />
       </View>
     </View>
   )
@@ -61,9 +66,9 @@ const styles = StyleSheet.create({
     width: Dimensions.get('screen').width,
   },
   halfScreenContainer: {
-    flex:1,
-    flexDirection:'column',
-    gap:10
+    flex: 1,
+    flexDirection: 'column',
+    gap: 10
   }
 })
 

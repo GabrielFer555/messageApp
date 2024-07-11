@@ -49,5 +49,4 @@ export default class MessageQueue {
         this.listOfMessages.push(msg)
     }
 
-
 }

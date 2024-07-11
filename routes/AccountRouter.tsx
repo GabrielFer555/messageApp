@@ -10,7 +10,9 @@ const AccountRouter = () => {
 
   return (
     <AccountDrawer.Navigator>
-        <AccountDrawer.Screen component={MyAccount} name='myAccount'/>
+        <AccountDrawer.Screen component={MyAccount} name='myAccount' options={{
+          title:'Profile'
+        }}/>
         <AccountDrawer.Screen component={OptionsScreen} name='options' options={{
             title:'Options'
         }}/>
