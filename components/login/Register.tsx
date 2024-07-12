@@ -44,8 +44,9 @@ const Register = ({ navigation }) => {
                 const userCredentials = await createUserWithEmailAndPassword(auth, email, password);
                 const newUser = await addDoc(collection(db, "users"), {
                     userName: nickName,
-                    userID: userCredentials.user.uid,
-                    email: userCredentials.user.email
+                    userId: userCredentials.user.uid,
+                    email: userCredentials.user.email,
+                    bio:""
                 })
                 Toast.show({type:'success', text1:'User registered with success!'})
                 navigation.navigate('login')

@@ -1,25 +1,59 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Dimensions, StyleSheet, Text, View } from 'react-native'
+import { Dimensions, KeyboardAvoidingView, StyleSheet, Text, View } from 'react-native'
 import { userContext } from '../../contexts/UserContext'
 import { firestore } from '../../configs/Firebase'
-import { collection, doc, getDocs, query, where } from 'firebase/firestore'
+import { collection, doc, getDocs, query, setDoc, where } from 'firebase/firestore'
 import Toast from 'react-native-toast-message'
 import { Avatar, Button, TextInput } from 'react-native-paper'
 import { patternStyles } from '../../patterns/patternStyles'
+import { useKeyboard } from '@react-native-community/hooks'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { loadingContext } from '../../contexts/LoadingContext'
 
 
 
 
 
 const MyAccount = ({ navigation }) => {
+
   const { user } = useContext(userContext)
+  const [docId, setDocId] = useState('')
   const [userName, setUsername] = useState('')
   const [bio, setBio] = useState('')
+  const [bioFromResponse, setOriginalBioFromResponse] = useState('');
   const userCollection = collection(firestore, 'users')
+  const keyboard = useKeyboard()
+  const {setLoading} = useContext(loadingContext)
+
+
+  const saveAlterations = async () =>{
+    try{
+      setLoading(true)
+      await setDoc(doc(firestore, "users", docId), {
+        email:user.email,
+        userName: userName,
+        userId: user.uid,
+        bio: bio
+      })
+      Toast.show({
+        type:'success',
+        text1:'Saved!',
+        text2:'Alterations saved to the profile'
+      })
+    }catch(err){
+      Toast.show({
+        type:'error',
+        text1:'Impossible to save alterations',
+        text2:'Try again later'
+      })
+    }finally{
+      setLoading(false)
+    }
+  }
+
 
   const searchUserData = async () => {
-    const queryUser = query(userCollection, where("userID", "==", user.uid))
-
+    const queryUser = query(userCollection, where("userId", "==", user.uid))
     try {
       const userData = await getDocs(queryUser)
       if (userData.empty) {
@@ -29,12 +63,13 @@ const MyAccount = ({ navigation }) => {
           text2: 'User not found'
         })
       }
+      setOriginalBioFromResponse(bio)
       userData.forEach(user => {
+        setDocId(user.id)
         setUsername(user.data().userName)
+        setOriginalBioFromResponse(user.data().bio)
       })
-
     } catch (err) {
-
     }
   }
 
@@ -51,10 +86,13 @@ const MyAccount = ({ navigation }) => {
       <View style={styles.halfScreenContainer}>
         <Button buttonColor='blue' mode='contained' textColor='white' icon="qrcode" style={patternStyles.buttonStyle}> Share </Button>
       </View>
-      <View style={[styles.halfScreenContainer, { padding: 10 }]}>
+      <KeyboardAvoidingView style={[styles.halfScreenContainer, { padding: 10 }]} behavior='padding' keyboardVerticalOffset={Dimensions.get('screen').width * 0.15}>
         <Text>Biography:</Text>
         <TextInput style={{ width: Dimensions.get('screen').width * 0.9 }} value={bio} label="write something..." onChangeText={txt => setBio(txt)} right={<TextInput.Icon icon="pen" />} />
-      </View>
+      </KeyboardAvoidingView>
+      <View style={styles.halfScreenContainer}>
+      <Button mode='outlined' buttonColor='green' textColor='white' style={patternStyles.buttonStyle} disabled={(bioFromResponse != bio)} onPress={()=>saveAlterations()}>Salvar</Button>
+     </View>
     </View>
   )
 }

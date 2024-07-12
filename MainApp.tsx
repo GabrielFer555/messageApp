@@ -6,18 +6,19 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
 
 import LoginRouter from './routes/LoginRouter';
-import LoadingContext from './contexts/LoadingContext';
+import LoadingContext, { loadingContext } from './contexts/LoadingContext';
 import MainRouter from './routes/MainRouter';
 
 import UserContext, { userContext } from './contexts/UserContext';
 import app, { firestore } from './configs/Firebase';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import Spinner from 'react-native-loading-spinner-overlay';
 
 
 
 const MainApp = () => {
     const {user,setUser} = useContext(userContext);
-
+    const {loading } = useContext(loadingContext)
 
 
     useEffect(()=>{
@@ -28,13 +29,12 @@ const MainApp = () => {
 
     return (
         <>
-            <LoadingContext>
                 <NavigationContainer>
                     {user? <MainRouter/>: <LoginRouter/>}
                 </NavigationContainer>
                 <StatusBar style="auto" />
+                <Spinner visible={loading}/>
                 <Toast visibilityTime={2500} />
-            </LoadingContext>
         </>
 
     )

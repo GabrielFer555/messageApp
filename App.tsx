@@ -12,9 +12,12 @@ import MainApp from './MainApp';
 export default function App() {
   return (
     <>
-    <UserContext>
-      <MainApp/>
-    </UserContext>
+      <UserContext>
+        <LoadingContext>
+          <MainApp />
+        </LoadingContext>
+
+      </UserContext>
     </>
 
   );
