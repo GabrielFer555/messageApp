@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Dimensions, KeyboardAvoidingView, StyleSheet, Text, View } from 'react-native'
+import { Dimensions, Keyboard, KeyboardAvoidingView, StyleSheet, Text, View } from 'react-native'
 import { userContext } from '../../contexts/UserContext'
 import { firestore } from '../../configs/Firebase'
 import { collection, doc, getDocs, query, setDoc, where } from 'firebase/firestore'
@@ -9,6 +9,7 @@ import { patternStyles } from '../../patterns/patternStyles'
 import { useKeyboard } from '@react-native-community/hooks'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { loadingContext } from '../../contexts/LoadingContext'
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler'
 
 
 
@@ -23,30 +24,31 @@ const MyAccount = ({ navigation }) => {
   const [bioFromResponse, setOriginalBioFromResponse] = useState('');
   const userCollection = collection(firestore, 'users')
   const keyboard = useKeyboard()
-  const {setLoading} = useContext(loadingContext)
+  const { setLoading } = useContext(loadingContext)
 
 
-  const saveAlterations = async () =>{
-    try{
+  const saveAlterations = async () => {
+    try {
       setLoading(true)
       await setDoc(doc(firestore, "users", docId), {
-        email:user.email,
+        email: user.email,
         userName: userName,
         userId: user.uid,
         bio: bio
       })
       Toast.show({
-        type:'success',
-        text1:'Saved!',
-        text2:'Alterations saved to the profile'
+        type: 'success',
+        text1: 'Saved!',
+        text2: 'Alterations saved to the profile'
       })
-    }catch(err){
+    } catch (err) {
       Toast.show({
-        type:'error',
-        text1:'Impossible to save alterations',
-        text2:'Try again later'
+        type: 'error',
+        text1: 'Impossible to save alterations',
+        text2: 'Try again later'
       })
-    }finally{
+    } finally {
+      searchUserData()
       setLoading(false)
     }
   }
@@ -67,6 +69,7 @@ const MyAccount = ({ navigation }) => {
       userData.forEach(user => {
         setDocId(user.id)
         setUsername(user.data().userName)
+        setBio(user.data().bio)
         setOriginalBioFromResponse(user.data().bio)
       })
     } catch (err) {
@@ -74,25 +77,36 @@ const MyAccount = ({ navigation }) => {
   }
 
   useEffect(() => {
-    searchUserData()
+    setLoading(true)
+    try{
+      searchUserData()
+    }catch(err){
+      Toast.show({
+        type:'error',
+        text1:'Error',
+        text2:err
+      })
+    } finally{
+        setLoading(false)
+    }
   }, [])
 
   return (
     <View style={styles.container}>
-      <View style={[styles.halfScreenContainer, { flex: 2 }]}>
-        <Avatar.Icon size={200} icon="account" />
-        <Text style={{ fontSize: 25, textAlign: 'center' }}>{userName}</Text>
-      </View>
-      <View style={styles.halfScreenContainer}>
-        <Button buttonColor='blue' mode='contained' textColor='white' icon="qrcode" style={patternStyles.buttonStyle}> Share </Button>
-      </View>
+        <View style={[styles.halfScreenContainer, {flex:2}]}>
+          <Avatar.Icon size={200} icon="account" />
+          <Text style={{ fontSize: 25, textAlign: 'center' }}>{userName}</Text>
+        </View>
+        <View style={styles.halfScreenContainer}>
+          <Button buttonColor='blue' mode='contained' textColor='white' icon="qrcode" style={patternStyles.buttonStyle}> Share </Button>
+        </View>
       <KeyboardAvoidingView style={[styles.halfScreenContainer, { padding: 10 }]} behavior='padding' keyboardVerticalOffset={Dimensions.get('screen').width * 0.15}>
         <Text>Biography:</Text>
         <TextInput style={{ width: Dimensions.get('screen').width * 0.9 }} value={bio} label="write something..." onChangeText={txt => setBio(txt)} right={<TextInput.Icon icon="pen" />} />
       </KeyboardAvoidingView>
       <View style={styles.halfScreenContainer}>
-      <Button mode='outlined' buttonColor='green' textColor='white' style={patternStyles.buttonStyle} disabled={(bioFromResponse != bio)} onPress={()=>saveAlterations()}>Salvar</Button>
-     </View>
+        <Button mode='outlined' buttonColor='green' textColor='white' style={patternStyles.buttonStyle} disabled={(bioFromResponse == bio || bio === '')} onPress={() => saveAlterations()}>Salvar</Button>
+      </View>
     </View>
   )
 }

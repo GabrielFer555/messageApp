@@ -1,14 +1,18 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Dimensions, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, TouchableWithoutFeedback, View, PlatformConstants, StatusBar } from 'react-native'
+import { Dimensions, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, TouchableWithoutFeedback, View, PlatformConstants, StatusBar, FlatList } from 'react-native'
 import { Appbar, Button, IconButton, Text, TextInput } from 'react-native-paper'
 import MiAppbar from '../Vanilla/miAppbar'
 import { useHeaderHeight } from "@react-navigation/elements";
 import { Constants, NativeConstants, PlatformManifest } from 'expo-constants';
 import { useRoute } from '@react-navigation/native';
-import { collection, doc, Firestore, getDocs, getFirestore, onSnapshot, Query, query, setDoc, Timestamp, where } from 'firebase/firestore';
+import { collection, doc, DocumentData, Firestore, getDocs, getFirestore, onSnapshot, Query, query, setDoc, Timestamp, where } from 'firebase/firestore';
 import app, { firestore } from '../../configs/Firebase';
 import { userContext } from '../../contexts/UserContext';
 import UserMessageComponent from './messagesComponents/UserMessageComponent';
+
+interface IMessage{
+
+}
 
 
 const ChatMessage = ({ route, navigation }) => {
@@ -18,30 +22,37 @@ const ChatMessage = ({ route, navigation }) => {
   const headerHeight = useHeaderHeight();
   const messageRef = collection(firestore, '/messages');
   const [messagesSend, setMessagesSend] = useState([])
+  const [messages, setMessages] = useState<any>([])
+  
 
 
-  useEffect(() => {
-
+    useEffect(() => {
+      // Construct the Firestore query
+      const unsubscribe = () => {onSnapshot(queryMsg, (messages) => {
+        const messageBox = []
     
-  }, [])
-
-  /*onSnapshot(messageRef, (messages) => {
-    messages.docs.map(msg => {
-      console.log(msg.data())
-    })
-  })*/
-
- /* const loadMessages = async () => {
-    const messages:Query = query(messageRef, where("userId", "in", [userId, userTo]), where("userTo", "in", [userId, userTo]))
-    const resultQueries = await getDocs(query)
-    console.log(resultQueries)
-  }*/
-
+        messages.forEach(message => {
+          messageBox.push({
+            ...message.data(),
+            key:message.id
+          })
+        })
+    
+        messageBox.map((a) => {console.log(a)})
+        setMessages(messageBox)
+      })
+    }
+      return  ()=> unsubscribe()
+  
+      // Clean up the subscription when the component unmounts
+      
+    }, []);
+    
   const MessageButton = (props) => {
     const isMessageEmpty = message.trim() !== ''
     const styleButton = StyleSheet.create({
       backgroundColor: {
-        backgroundColor: isMessageEmpty ? 'blue' : 'white'
+        backgroundColor: isMessageEmpty ? '#2980b9' : '#bdc3c7'
       }
     })
 
@@ -61,19 +72,16 @@ const ChatMessage = ({ route, navigation }) => {
     )
   }
 
-  const styles = StyleSheet.create({
-    inputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 10,
-      flex: 1,
-      overflow:"hidden"
-    },
-    input: {
-      flex: 1,
-      marginRight: 10,
-    },
-  });
+ /* const loadMessages = async () => {
+    const messages:Query = query(messageRef, where("userId", "in", [userId, userTo]), where("userTo", "in", [userId, userTo]))
+    const resultQueries = await getDocs(query)
+    console.log(resultQueries)
+  }*/
+
+    const queryMsg:Query = query(messageRef, where("userId", "in", [user.uid, userTo]), where("userTo", "in", [user.uid, userTo]))
+
+  
+
 
   const handleSendMessageEvent = () => {
     const dateSent = new Date()
@@ -98,7 +106,7 @@ const ChatMessage = ({ route, navigation }) => {
 
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior='padding'>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor:'#2c2c54' }} behavior='padding'>
       <View>
         <Appbar.Header>
           <MiAppbar text={userName} />
@@ -106,19 +114,35 @@ const ChatMessage = ({ route, navigation }) => {
       </View>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={{ flex: 6 }}>
-          <UserMessageComponent message='Hello World' timestamp={new Date()} viewed={false}/>
-          <UserMessageComponent message='Hello' timestamp={new Date()} viewed={false}/>
+          <FlatList data={messages}
+          keyExtractor={message => message.key}
+          renderItem={({item}) => <UserMessageComponent message={item.message} viewed={item.viewed} timestamp={new Date()} isReceived={item.userTo!= user.uid}/>}
+          />
         </View>
       </TouchableWithoutFeedback>
       <View style={styles.inputContainer}>
         <TextInput value={message} onChangeText={valueTyped => setMessage(valueTyped)} style={styles.input} textBreakStrategy='balanced'/>
-        <MessageButton style={{ flex: 1 }} onPress={() => handleSendMessageEvent()} />
+        <MessageButton style={{ flex: 1 }} onPress={() => handleSendMessageEvent()}/>
       </View>
     </KeyboardAvoidingView>
+
   )
 
 }
+const styles = StyleSheet.create({
+  inputContainer: {
+    flexDirection: 'row',
+    flex: 1,
+    overflow:"hidden" ,
+    borderTopWidth:1 
+   },
 
+  input: {
+    flex: 1,
+    fontSize:20,
+    justifyContent:'center'
+  },
+});
 
 
 export default ChatMessage
