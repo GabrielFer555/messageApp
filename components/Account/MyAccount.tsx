@@ -6,7 +6,6 @@ import { collection, doc, getDocs, query, setDoc, where } from 'firebase/firesto
 import Toast from 'react-native-toast-message'
 import { Avatar, Button, TextInput } from 'react-native-paper'
 import { patternStyles } from '../../patterns/patternStyles'
-import { useKeyboard } from '@react-native-community/hooks'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { loadingContext } from '../../contexts/LoadingContext'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler'
@@ -23,8 +22,8 @@ const MyAccount = ({ navigation }) => {
   const [bio, setBio] = useState('')
   const [bioFromResponse, setOriginalBioFromResponse] = useState('');
   const userCollection = collection(firestore, 'users')
-  const keyboard = useKeyboard()
   const { setLoading } = useContext(loadingContext)
+  const [totalWordsBio, setTotalWordsBio] = useState(60) 
 
 
   const saveAlterations = async () => {
@@ -102,7 +101,14 @@ const MyAccount = ({ navigation }) => {
         </View>
       <KeyboardAvoidingView style={[styles.halfScreenContainer, { padding: 10 }]} behavior='padding' keyboardVerticalOffset={Dimensions.get('screen').width * 0.15}>
         <Text>Biography:</Text>
-        <TextInput style={{ width: Dimensions.get('screen').width * 0.9 }} value={bio} label="write something..." onChangeText={txt => setBio(txt)} right={<TextInput.Icon icon="pen" />} />
+        <TextInput style={{ width: Dimensions.get('screen').width * 0.9 }} value={bio} label="write something..." maxLength={60} onChangeText={
+          txt => {
+          setBio(txt)
+          setTotalWordsBio(60 - txt.length)
+          }} right={<TextInput.Icon icon="pen" />} />
+        <View style={{display: bio === bioFromResponse? 'none':'flex'}}>
+          <Text style={{color:'red'}}>Words allowed: {totalWordsBio}</Text>
+        </View>
       </KeyboardAvoidingView>
       <View style={styles.halfScreenContainer}>
         <Button mode='outlined' buttonColor='green' textColor='white' style={patternStyles.buttonStyle} disabled={(bioFromResponse == bio || bio === '')} onPress={() => saveAlterations()}>Salvar</Button>

@@ -1,11 +1,11 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import { Dimensions, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, TouchableWithoutFeedback, View, PlatformConstants, StatusBar, FlatList } from 'react-native'
 import { Appbar, Button, IconButton, Text, TextInput } from 'react-native-paper'
 import MiAppbar from '../Vanilla/miAppbar'
 import { useHeaderHeight } from "@react-navigation/elements";
 import { Constants, NativeConstants, PlatformManifest } from 'expo-constants';
 import { useRoute } from '@react-navigation/native';
-import { collection, doc, DocumentData, Firestore, getDocs, getFirestore, onSnapshot, Query, query, setDoc, Timestamp, where } from 'firebase/firestore';
+import { addDoc, collection, doc, DocumentData, Firestore, getDocs, getFirestore, onSnapshot, orderBy, Query, query, setDoc, Timestamp, where } from 'firebase/firestore';
 import app, { firestore } from '../../configs/Firebase';
 import { userContext } from '../../contexts/UserContext';
 import UserMessageComponent from './messagesComponents/UserMessageComponent';
@@ -23,12 +23,13 @@ const ChatMessage = ({ route, navigation }) => {
   const messageRef = collection(firestore, '/messages');
   const [messagesSend, setMessagesSend] = useState([])
   const [messages, setMessages] = useState<any>([])
+  const screenBottomRef = useRef(null)
   
 
 
     useEffect(() => {
-      // Construct the Firestore query
-      const unsubscribe = () => {onSnapshot(queryMsg, (messages) => {
+
+      onSnapshot(queryMsg, (messages) => {
         const messageBox = []
     
         messages.forEach(message => {
@@ -41,9 +42,8 @@ const ChatMessage = ({ route, navigation }) => {
         messageBox.map((a) => {console.log(a)})
         setMessages(messageBox)
       })
-    }
-      return  ()=> unsubscribe()
-  
+      screenBottomRef.current?.scrollIntoView()
+
       // Clean up the subscription when the component unmounts
       
     }, []);
@@ -78,7 +78,7 @@ const ChatMessage = ({ route, navigation }) => {
     console.log(resultQueries)
   }*/
 
-    const queryMsg:Query = query(messageRef, where("userId", "in", [user.uid, userTo]), where("userTo", "in", [user.uid, userTo]))
+    const queryMsg:Query = query(messageRef, where("userId", "in", [user.uid, userTo]), where("userTo", "in", [user.uid, userTo]), orderBy("messageDate", "asc"))
 
   
 
@@ -86,7 +86,7 @@ const ChatMessage = ({ route, navigation }) => {
   const handleSendMessageEvent = () => {
     const dateSent = new Date()
 
-      const messageCreation = setDoc(doc(firestore, 'messages', new Date().toString()),{
+      const messageCreation = setDoc(doc(firestore, 'messages',`${new Date().toString()}-${user.uid}-${userTo}`),{
         message:message,
         viewed:false,
         favorite:false,
@@ -116,8 +116,9 @@ const ChatMessage = ({ route, navigation }) => {
         <View style={{ flex: 6 }}>
           <FlatList data={messages}
           keyExtractor={message => message.key}
-          renderItem={({item}) => <UserMessageComponent message={item.message} viewed={item.viewed} timestamp={new Date()} isReceived={item.userTo!= user.uid}/>}
+          renderItem={({item}) => <UserMessageComponent message={item.message} viewed={item.viewed} timestamp={new Date()} isReceived={item.userTo == user.uid}/>}
           />
+          <View ref={screenBottomRef}></View>
         </View>
       </TouchableWithoutFeedback>
       <View style={styles.inputContainer}>

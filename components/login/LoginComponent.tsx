@@ -31,7 +31,7 @@ const LoginComponent = ({navigation}) => {
       setUser(result.user)
       AsyncStorage.setItem('access-token', await result.user.getIdToken(true))
       AsyncStorage.setItem('uuid', result.user.uid)
-      AsyncStorage.setItem('uuid', result.user.email)
+      AsyncStorage.setItem('email', result.user.email)
       Toast.show({type:'success', text1:'Logged in with success'})
     }catch(err){
       inputEmailRef.current.focus()
