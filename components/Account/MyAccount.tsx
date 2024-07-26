@@ -107,7 +107,7 @@ const MyAccount = ({ navigation }) => {
           setTotalWordsBio(60 - txt.length)
           }} right={<TextInput.Icon icon="pen" />} />
         <View style={{display: bio === bioFromResponse? 'none':'flex'}}>
-          <Text style={{color:'red'}}>Words allowed: {totalWordsBio}</Text>
+          <Text style={{color:'red'}}>Characters allowed: {totalWordsBio}</Text>
         </View>
       </KeyboardAvoidingView>
       <View style={styles.halfScreenContainer}>

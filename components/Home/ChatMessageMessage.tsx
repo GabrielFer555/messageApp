@@ -23,7 +23,7 @@ const ChatMessage = ({ route, navigation }) => {
   const messageRef = collection(firestore, '/messages');
   const [messagesSend, setMessagesSend] = useState([])
   const [messages, setMessages] = useState<any>([])
-  const screenBottomRef = useRef(null)
+  const screenBottomRef = useRef<null | View>(null)
   
 
 
@@ -42,7 +42,7 @@ const ChatMessage = ({ route, navigation }) => {
         messageBox.map((a) => {console.log(a)})
         setMessages(messageBox)
       })
-      screenBottomRef.current?.scrollIntoView()
+      screenBottomRef.current.focus()
 
       // Clean up the subscription when the component unmounts
       
@@ -113,12 +113,12 @@ const ChatMessage = ({ route, navigation }) => {
         </Appbar.Header>
       </View>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{ flex: 6 }}>
+        <View style={{ flex: 6}}>
           <FlatList data={messages}
           keyExtractor={message => message.key}
           renderItem={({item}) => <UserMessageComponent message={item.message} viewed={item.viewed} timestamp={new Date()} isReceived={item.userTo == user.uid}/>}
           />
-          <View ref={screenBottomRef}></View>
+          <View ref={screenBottomRef} style={{bottom:0}}></View>
         </View>
       </TouchableWithoutFeedback>
       <View style={styles.inputContainer}>
