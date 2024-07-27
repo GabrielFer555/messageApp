@@ -10,7 +10,7 @@ import app, { firestore } from '../../configs/Firebase';
 import { userContext } from '../../contexts/UserContext';
 import UserMessageComponent from './messagesComponents/UserMessageComponent';
 
-interface IMessage{
+interface IMessage {
 
 }
 
@@ -18,36 +18,37 @@ interface IMessage{
 const ChatMessage = ({ route, navigation }) => {
   const [message, setMessage] = useState<string>('')
   const { userName, userTo } = route.params
-  const {user} = useContext(userContext)
-  const headerHeight = useHeaderHeight();
+  const { user } = useContext(userContext)
   const messageRef = collection(firestore, '/messages');
-  const [messagesSend, setMessagesSend] = useState([])
   const [messages, setMessages] = useState<any>([])
+
   const screenBottomRef = useRef<null | View>(null)
   
 
 
-    useEffect(() => {
-
+  useEffect(() => {
+    // Construct the Firestore query
+    const unsubscribe = () => {
       onSnapshot(queryMsg, (messages) => {
         const messageBox = []
-    
+
         messages.forEach(message => {
           messageBox.push({
             ...message.data(),
-            key:message.id
+            key: message.id
           })
         })
-    
-        messageBox.map((a) => {console.log(a)})
+
+        messageBox.map((a) => { console.log(a) })
         setMessages(messageBox)
       })
-      screenBottomRef.current.focus()
+    }
+    return () => unsubscribe()
 
-      // Clean up the subscription when the component unmounts
-      
-    }, []);
-    
+    // Clean up the subscription when the component unmounts
+
+  }, []);
+
   const MessageButton = (props) => {
     const isMessageEmpty = message.trim() !== ''
     const styleButton = StyleSheet.create({
@@ -57,7 +58,7 @@ const ChatMessage = ({ route, navigation }) => {
     })
 
     return (
-      <View style={[styleButton.backgroundColor, { alignItems:'center', justifyContent:'center'}]}>
+      <View style={[styleButton.backgroundColor, { alignItems: 'center', justifyContent: 'center' }]}>
         {isMessageEmpty ? <IconButton
           icon="chat-outline"
           size={40}
@@ -72,41 +73,39 @@ const ChatMessage = ({ route, navigation }) => {
     )
   }
 
- /* const loadMessages = async () => {
-    const messages:Query = query(messageRef, where("userId", "in", [userId, userTo]), where("userTo", "in", [userId, userTo]))
-    const resultQueries = await getDocs(query)
-    console.log(resultQueries)
-  }*/
+  /* const loadMessages = async () => {
+     const messages:Query = query(messageRef, where("userId", "in", [userId, userTo]), where("userTo", "in", [userId, userTo]))
+     const resultQueries = await getDocs(query)
+     console.log(resultQueries)
+   }*/
 
-    const queryMsg:Query = query(messageRef, where("userId", "in", [user.uid, userTo]), where("userTo", "in", [user.uid, userTo]), orderBy("messageDate", "asc"))
-
-  
+  const queryMsg: Query = query(messageRef, where("userId", "in", [user.uid, userTo]), where("userTo", "in", [user.uid, userTo]), orderBy("messageDate", "asc"))
 
 
-  const handleSendMessageEvent = () => {
+
+
+  const handleSendMessageEvent = async () => {
     const dateSent = new Date()
 
-      const messageCreation = setDoc(doc(firestore, 'messages',`${new Date().toString()}-${user.uid}-${userTo}`),{
+      const messageCreation = setDoc(doc(firestore, 'messages', new Date().toString()),{
         message:message,
         viewed:false,
         favorite:false,
         messageDate: new Timestamp(dateSent.getSeconds(), dateSent.getMilliseconds() * 100000),
-        photoUrl:'',
-        userId:user.uid,
-        userTo:userTo,
-        wasItRead:false
-      }).then(message => {
-        
-      }).catch(err => {
-        console.log(err)
-      }).finally(()=>{
-        setMessage('')
+        photoUrl: '',
+        userId: user.uid,
+        userTo: userTo,
+        wasItRead: false
       })
+    } catch (err) {
+      console.error(err)
     }
+
+  }
 
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor:'#2c2c54' }} behavior='padding'>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#2c2c54' }} behavior='padding'>
       <View>
         <Appbar.Header>
           <MiAppbar text={userName} />
@@ -118,12 +117,11 @@ const ChatMessage = ({ route, navigation }) => {
           keyExtractor={message => message.key}
           renderItem={({item}) => <UserMessageComponent message={item.message} viewed={item.viewed} timestamp={new Date()} isReceived={item.userTo == user.uid}/>}
           />
-          <View ref={screenBottomRef} style={{bottom:0}}></View>
         </View>
       </TouchableWithoutFeedback>
       <View style={styles.inputContainer}>
-        <TextInput value={message} onChangeText={valueTyped => setMessage(valueTyped)} style={styles.input} textBreakStrategy='balanced'/>
-        <MessageButton style={{ flex: 1 }} onPress={() => handleSendMessageEvent()}/>
+        <TextInput value={message} onChangeText={valueTyped => setMessage(valueTyped)} style={styles.input} textBreakStrategy='balanced' />
+        <MessageButton style={{ flex: 1 }} onPress={() => handleSendMessageEvent()} />
       </View>
     </KeyboardAvoidingView>
 
@@ -134,14 +132,14 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     flex: 1,
-    overflow:"hidden" ,
-    borderTopWidth:1 
-   },
+    overflow: "hidden",
+    borderTopWidth: 1
+  },
 
   input: {
     flex: 1,
-    fontSize:20,
-    justifyContent:'center'
+    fontSize: 20,
+    justifyContent: 'center'
   },
 });
 
